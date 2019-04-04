@@ -20,7 +20,7 @@ class Gear(Base):
     id = Column(Integer, primary_key=True)
     description = Column(String(250))
     datetimeadded = Column(DateTime, default=datetime.now())
-    categoryid = Column(Integer, ForeignKey('category.id'))
+    category_id = Column(Integer, ForeignKey('category.id'))
     category = relationship(Category)
 
 engine = create_engine('sqlite:///catalog.db')
