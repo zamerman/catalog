@@ -18,7 +18,11 @@ session = DBSession()
 @app.route('/')
 @app.route('/catalog/')
 def initialCatalog():
-    return render_template('catalogpage.html')
+    categories = session.query(Category).all()
+    latestGear = session.query(Gear).all()
+    return render_template('catalogpage.html',
+                        categories=categories,
+                        latestGear=latestGear)
 
 # app categories catalog page
 #@app.route('/catalog/<string:category>/items/')
