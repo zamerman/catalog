@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <link rel="stylesheet"
+            type="text/css"
+            href={{url_for('static', filename='style.css')}}>
+        <meta charset="utf-8">
+        <title></title>
+    </head>
+    <body>
+        <div class="nav-bar">
+            <h1>Sports Gear</h1>
+        </div>
+        <div class="contents">
+            <div class="links categories">
+                <h2>Categories</h2>
+                <hr>
+                <ul>
+                    {% for category in categories %}
+                        <li><h3>{{category.name}}</h3></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="links items">
+                <h2>{{gear.name}} ({{gear.category.name}})</h2>
+                <hr>
+                <h3>{{gear.description  }}</h3>
+            </div>
+        </div>
+    </body>
+</html>

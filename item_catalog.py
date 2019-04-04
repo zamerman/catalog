@@ -27,9 +27,9 @@ def initialCatalog():
                         latestGear=latestGear)
 
 # app categories catalog page
-@app.route('/catalog/<string:categoryname>/')
-def categoryCatalog(categoryname):
-    category = session.query(Category).filter_by(name=categoryname).one()
+@app.route('/catalog/<string:category_name>/')
+def categoryCatalog(category_name):
+    category = session.query(Category).filter_by(name=category_name).one()
     categories = session.query(Category).all()
     latestGear = session.query(Gear).filter_by(category=category)
     return render_template('categorypage.html',
@@ -38,7 +38,16 @@ def categoryCatalog(categoryname):
                         latestGear=latestGear)
 
 # app item information page
-#@app.route('/catalog/<string:category>/<string:item_name>')
+@app.route('/catalog/<string:category_name>/<string:item_name>')
+def gearCatalog(category_name, item_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    gear = session.query(Gear).filter_by(name=item_name, category=category).one()
+    categories = session.query(Category).all()
+    return render_template('gearpage.html',
+                        categories=categories,
+                        gear=gear)
+
+
 
 # app item creation page
 #@app.route('/catalog/create/')
