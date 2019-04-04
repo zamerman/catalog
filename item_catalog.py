@@ -8,7 +8,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from catalog_setup import Base, Category, Gear
 
-engine = create_engine('sqlite:///catalog.db')
+engine = create_engine('sqlite:///catalog.db',
+                    connect_args={'check_same_thread':False},
+                    poolclass=StaticPool)
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -25,7 +27,15 @@ def initialCatalog():
                         latestGear=latestGear)
 
 # app categories catalog page
-#@app.route('/catalog/<string:category>/items/')
+@app.route('/catalog/<string:categoryname>/')
+def categoryCatalog(categoryname):
+    category = session.query(Category).filter_by(name=categoryname).one()
+    categories = session.query(Category).all()
+    latestGear = session.query(Gear).filter_by(category=category)
+    return render_template('categorypage.html',
+                        category=category,
+                        categories=categories,
+                        latestGear=latestGear)
 
 # app item information page
 #@app.route('/catalog/<string:category>/<string:item_name>')

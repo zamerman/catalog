@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <link rel="stylesheet"
+            type="text/css"
+            href={{url_for('static', filename='style.css')}}>
+        <meta charset="utf-8">
+        <title></title>
+    </head>
+    <body>
+        <div class="nav-bar">
+            <h1>Sports Gear</h1>
+        </div>
+        <div class="contents">
+            <div class="links categories">
+                <h2>Categories</h2>
+                <hr>
+                <ul>
+                    {% for category in categories %}
+                        <li><h3>{{category.name}}</h3></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="links items">
+                <h2>{{category.name}} Items ({{latestGear.count()}} Items)</h2>
+                <hr>
+                <ul>
+                    {% for gear in latestGear %}
+                        <li><h3>{{gear.name}}</h3></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </body>
+</html>
