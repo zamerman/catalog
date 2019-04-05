@@ -18,6 +18,10 @@ h2 {
     text-align: center;
 }
 
+h3 {
+    display: inline;
+}
+
 .nav-bar {
     margin: 0px;
     background-color: #595959;
