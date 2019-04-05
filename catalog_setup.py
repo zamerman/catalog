@@ -3,8 +3,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 
-from datetime import datetime
-
 Base = declarative_base()
 
 class Category(Base):
@@ -19,7 +17,7 @@ class Gear(Base):
     name = Column(String(80), nullable=False)
     id = Column(Integer, primary_key=True)
     description = Column(String(250))
-    datetimeadded = Column(DateTime, default=datetime.now())
+    datetimeadded = Column(DateTime, nullable=False)
     category_id = Column(Integer, ForeignKey('category.id'))
     category = relationship(Category)
 

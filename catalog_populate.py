@@ -2,6 +2,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from catalog_setup import Base, Category, Gear
 
+from datetime import datetime
+
 engine = create_engine('sqlite:///catalog.db')
 Base.metadata.bind=engine
 
@@ -21,6 +23,6 @@ for category in categories:
 
 for item in gear:
     category=session.query(Category).filter_by(name=gear[item][1]).one()
-    newGear = Gear(name=item, description=gear[item][0], category=category)
+    newGear = Gear(name=item, description=gear[item][0], datetimeadded=datetime.now(), category=category)
     session.add(newGear)
     session.commit()
