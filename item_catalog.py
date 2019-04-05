@@ -57,18 +57,24 @@ def createGear():
     categories = session.query(Category).all()
     if request.method == 'POST':
         category_name=request.form['category']
+        gear_name=request.form['name']
         if session.query(Category).filter_by(name=category_name).count() == 0:
             category=Category(name=category_name)
             session.add(category)
             session.commit()
+            flash('New Category Created!')
         else:
             category=session.query(Category).filter_by(name=category_name).one()
-        gear=Gear(name=request.form['name'],
-            description=request.form['description'],
-            datetimeadded=datetime.now(),
-            category=category)
-        session.add(gear)
-        session.commit()
+        if session.query(Gear).filter_by(name=gear_name).count() > 0:
+            flash('Gear with that name already exists!')
+        else:
+            gear=Gear(name=gear_name,
+                description=request.form['description'],
+                datetimeadded=datetime.now(),
+                category=category)
+            session.add(gear)
+            session.commit()
+            flash('New Gear Item Created!')
         return redirect(url_for('initialCatalog'))
     else:
         return render_template('newgearpage.html',
@@ -81,5 +87,6 @@ def createGear():
 #@app.route('/catalog/<string:item_name>/delete/')
 
 if __name__ == '__main__':
+    app.secret_key='super_secret_key'
     app.debug = True
     app.run(host='0.0.0.0', port=8000)

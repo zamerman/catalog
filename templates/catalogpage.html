@@ -23,6 +23,16 @@
             </div>
             <div class="links items">
                 <a href="{{url_for('createGear')}}">Add Gear</a>
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <ul>
+                            {% for message in messages %}
+                                <li><strong>{{ message }}</strong></li>
+                            {% endfor %}
+                        </ul>
+                        </br></br>
+                    {% endif %}
+                {% endwith %}
                 <h2>Latest Items</h2>
                 <hr>
                 <ul>
