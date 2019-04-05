@@ -9,7 +9,9 @@
     </head>
     <body>
         <div class="nav-bar">
-            <h1>Sports Gear</h1>
+            <a href={{url_for('initialCatalog')}}>
+                <h1>Sports Gear</h1>
+            </a>
         </div>
         <div class="contents">
             <div class="links categories">
@@ -17,7 +19,12 @@
                 <hr>
                 <ul>
                     {% for category in categories %}
-                        <li><h3>{{category.name}}</h3></li>
+                        <li>
+                            <a href={{url_for('categoryCatalog',
+                            category_name=category.name)}}>
+                                <h3>{{category.name}}</h3>
+                            </a>
+                        </li>
                     {% endfor %}
                 </ul>
             </div>
@@ -26,7 +33,13 @@
                 <hr>
                 <ul>
                     {% for gear in latestGear %}
-                        <li><h3>{{gear.name}}</h3></li>
+                        <li>
+                            <a href={{url_for('gearCatalog',
+                            category_name=gear.category.name,
+                            item_name=gear.name)}}>
+                                <h3>{{gear.name}} ({{gear.category.name}})</h3>
+                            </a>
+                        </li>
                     {% endfor %}
                 </ul>
             </div>
