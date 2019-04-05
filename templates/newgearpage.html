@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <link rel="stylesheet"
+            type="text/css"
+            href={{url_for('static', filename='style.css')}}>
+        <meta charset="utf-8">
+        <title></title>
+    </head>
+    <body>
+        <div class="nav-bar">
+            <h1>Sports Gear</h1>
+        </div>
+        <div class="contents">
+            <div class="links categories">
+                <h2>Categories</h2>
+                <hr>
+                <ul>
+                    {% for category in categories %}
+                        <li><h3>{{category.name}}</h3></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="links items">
+                <h2>New Gear</h2>
+                <hr>
+                <form action="{{url_for('createGear')}}" method="post">
+                    <input type="text" name="name" size="30" placeholder="Name">
+                    <input type="text" name="category" size="30" placeholder="Category">
+                    <input type="text" name="description" size="250">
+                    <input type="submit" value="Create">
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

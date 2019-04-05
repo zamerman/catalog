@@ -1,6 +1,8 @@
 # import webpage framework methods and classes from flask library
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, request, redirect, flash
 app = Flask(__name__)
+
+from datetime import datetime
 
 # import sql methods and classes from sqlalchemy library
 from sqlalchemy import create_engine
@@ -21,7 +23,7 @@ session = DBSession()
 @app.route('/catalog/')
 def initialCatalog():
     categories = session.query(Category).all()
-    latestGear = session.query(Gear).all()
+    latestGear = session.query(Gear).order_by(Gear.datetimeadded.desc())
     return render_template('catalogpage.html',
                         categories=categories,
                         latestGear=latestGear)
@@ -50,7 +52,27 @@ def gearCatalog(category_name, item_name):
 
 
 # app item creation page
-#@app.route('/catalog/create/')
+@app.route('/catalog/create/', methods=['GET', 'POST'])
+def createGear():
+    categories = session.query(Category).all()
+    if request.method == 'POST':
+        category_name=request.form['category']
+        if session.query(Category).filter_by(name=category_name).count() == 0:
+            category=Category(name=category_name)
+            session.add(category)
+            session.commit()
+        else:
+            category=session.query(Category).filter_by(name=category_name).one()
+        gear=Gear(name=request.form['name'],
+            description=request.form['description'],
+            datetimeadded=datetime.now(),
+            category=category)
+        session.add(gear)
+        session.commit()
+        return redirect(url_for('initialCatalog'))
+    else:
+        return render_template('newgearpage.html',
+                            categories=categories)
 
 # app item editer page
 #@app.route('/catalog/<string:item_name>/edit/')
