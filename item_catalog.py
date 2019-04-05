@@ -54,20 +54,35 @@ def gearCatalog(category_name, item_name):
 # app item creation page
 @app.route('/catalog/create/', methods=['GET', 'POST'])
 def createGear():
+
+    # Extract categories for navigation bar
     categories = session.query(Category).all()
+
+    # Check which method was used to call function
+    # If POST method is called then make changes to database and redirect to
+    # home page
     if request.method == 'POST':
+
+        # Store category name and gear name in variables
         category_name=request.form['category']
         gear_name=request.form['name']
-        if session.query(Category).filter_by(name=category_name).count() == 0:
-            category=Category(name=category_name)
-            session.add(category)
-            session.commit()
-            flash('New Category Created!')
-        else:
-            category=session.query(Category).filter_by(name=category_name).one()
+
+        # Check if the gear we are creating already exists in he database
+        # For web page navigation purposes all gear names must be unique
         if session.query(Gear).filter_by(name=gear_name).count() > 0:
             flash('Gear with that name already exists!')
         else:
+
+            # Check if the category for our new gear exists if not create it
+            if session.query(Category).filter_by(name=category_name).count()==0:
+                category=Category(name=category_name)
+                session.add(category)
+                session.commit()
+                flash('New Category Created!')
+            else:
+                category=session.query(Category).filter_by(name=category_name).one()
+
+            # Create new gear item
             gear=Gear(name=gear_name,
                 description=request.form['description'],
                 datetimeadded=datetime.now(),
@@ -76,12 +91,79 @@ def createGear():
             session.commit()
             flash('New Gear Item Created!')
         return redirect(url_for('initialCatalog'))
+
+    # If GET method is called render the new gear template
     else:
         return render_template('newgearpage.html',
                             categories=categories)
 
 # app item editer page
-#@app.route('/catalog/<string:item_name>/edit/')
+@app.route('/catalog/<string:item_name>/edit/', methods=['GET', 'POST'])
+def editGear(item_name):
+
+    # Extract categories and gear for navigation and display purposes
+    categories = session.query(Category).all()
+    gear=session.query(Gear).filter_by(name=item_name).one()
+
+    # Check which method was used to call upon this function
+    if request.method == 'POST':
+
+        category_name=request.form['category']
+        
+        # Check if the name of the gear is still the same
+        if request.form['name'] == gear.name:
+
+            if session.query(Category).filter_by(name=category_name).count()==0:
+                category=Category(name=category_name)
+                session.add(category)
+                session.commit()
+                flash('New Category Created!')
+            else:
+                category=session.query(Category).filter_by(name=category_name).one()
+
+            gear.description = request.form['description']
+            gear.category = category
+            gear.datetimeadded = datetime.now()
+
+            session.add(gear)
+            session.commit()
+
+            flash('Item was edited!')
+
+        # The name of the gear is different
+        else:
+            # Check if the new name collides with the names of other gear
+            if session.query(Gear).filter_by(name=request.form['name']).count()==0:
+
+                if session.query(Category).filter_by(name=category_name).count()==0:
+                    category=Category(name=category_name)
+                    session.add(category)
+                    session.commit()
+                    flash('New Category Created!')
+                else:
+                    category=session.query(Category).filter_by(name=category_name).one()
+
+                gear.name = request.form['name']
+                gear.description = request.form['description']
+                gear.category = category
+                gear.datetimeadded = datetime.now()
+
+                session.add(gear)
+                session.commit()
+
+                flash('Item was edited!')
+
+            # The name collides with names for another item
+            else:
+                flash('Another item already has that name!')
+
+        return redirect(url_for('gearCatalog',
+                            category_name=gear.category.name,
+                            item_name=gear.name))
+    else:
+        return render_template('editgearpage.html',
+                            categories=categories,
+                            gear=gear)
 
 # app item deleter page
 #@app.route('/catalog/<string:item_name>/delete/')
