@@ -109,7 +109,7 @@ def editGear(item_name):
     if request.method == 'POST':
 
         category_name=request.form['category']
-        
+
         # Check if the name of the gear is still the same
         if request.form['name'] == gear.name:
 
@@ -166,7 +166,20 @@ def editGear(item_name):
                             gear=gear)
 
 # app item deleter page
-#@app.route('/catalog/<string:item_name>/delete/')
+@app.route('/catalog/<string:item_name>/delete/',
+           methods=['GET', 'POST'])
+def deleteGear(item_name):
+    gear=session.query(Gear).filter_by(name=item_name).one()
+    if request.method == 'POST':
+        session.delete(gear)
+        session.commit()
+        flash('An item was deleted!')
+        return redirect(url_for('initialCatalog'))
+    else:
+        categories = session.query(Category).all()
+        return render_template('deletegearpage.html',
+                               categories=categories,
+                               gear=gear)
 
 if __name__ == '__main__':
     app.secret_key='super_secret_key'
