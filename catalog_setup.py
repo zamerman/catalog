@@ -12,7 +12,7 @@ Base = declarative_base()
 class Category(Base):
     __tablename__ = 'category'
 
-    name = Column(String(80), nullable=False)
+    name = Column(String(80), nullable=False, unique=True)
     id = Column(Integer, primary_key=True)
 
 
@@ -20,7 +20,7 @@ class Category(Base):
 class Gear(Base):
     __tablename__ = 'gear'
 
-    name = Column(String(80), nullable=False)
+    name = Column(String(80), nullable=False, unique=True)
     id = Column(Integer, primary_key=True)
     description = Column(String(250))
     datetimeadded = Column(DateTime, nullable=False)
