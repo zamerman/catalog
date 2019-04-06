@@ -36,7 +36,6 @@
                                 <li><strong>{{ message }}</strong></li>
                             {% endfor %}
                         </ul>
-                        <br><br>
                     {% endif %}
                 {% endwith %}
                 <h2>{{gear.name}} ({{gear.category.name}})</h2>
@@ -44,6 +43,8 @@
                 <h3>{{gear.description}}</h3>
                 <a href={{url_for('editGear', item_name=gear.name)}}>
                     Edit</a>
+                <a href={{url_for('deleteGear', item_name=gear.name)}}>
+                    Delete</a>
             </div>
         </div>
     </body>
