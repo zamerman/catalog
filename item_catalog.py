@@ -2,6 +2,7 @@
 from flask import Flask, render_template, url_for, request, redirect, flash
 app = Flask(__name__)
 
+# import datetime methods and class
 from datetime import datetime
 
 # import sql methods and classes from sqlalchemy library
@@ -10,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from catalog_setup import Base, Category, Gear
 
+# set up database handlers
 engine = create_engine('sqlite:///catalog.db',
                     connect_args={'check_same_thread':False},
                     poolclass=StaticPool)
@@ -43,7 +45,7 @@ def categoryCatalog(category_name):
 @app.route('/catalog/<string:category_name>/<string:item_name>')
 def gearCatalog(category_name, item_name):
     category = session.query(Category).filter_by(name=category_name).one()
-    gear = session.query(Gear).filter_by(name=item_name, category=category).one()
+    gear = session.query(Gear).filter_by(name=item_name,category=category).one()
     categories = session.query(Category).all()
     return render_template('gearpage.html',
                         categories=categories,
@@ -62,34 +64,31 @@ def createGear():
     # If POST method is called then make changes to database and redirect to
     # home page
     if request.method == 'POST':
-
-        # Store category name and gear name in variables
-        category_name=request.form['category']
-        gear_name=request.form['name']
-
-        # Check if the gear we are creating already exists in he database
-        # For web page navigation purposes all gear names must be unique
-        if session.query(Gear).filter_by(name=gear_name).count() > 0:
-            flash('Gear with that name already exists!')
-        else:
-
-            # Check if the category for our new gear exists if not create it
-            if session.query(Category).filter_by(name=category_name).count()==0:
-                category=Category(name=category_name)
+        # If the name of the item is unclaimed create it
+        # Else flash an error
+        item_name = request.form['name']
+        if session.query(Gear).filter_by(name=item_name).count() == 0:
+            # If category exists find it
+            # Else create Category
+            cat_name=request.form['category']
+            if session.query(Category).filter_by(name=cat_name).count() > 0:
+                category=session.query(Category).filter_by(name=cat_name).one()
+            else:
+                category=Category(cat_name)
                 session.add(category)
                 session.commit()
-                flash('New Category Created!')
-            else:
-                category=session.query(Category).filter_by(name=category_name).one()
+                flash('New Category created')
 
-            # Create new gear item
-            gear=Gear(name=gear_name,
+            gear=Gear(name=request.form['name'],
                 description=request.form['description'],
                 datetimeadded=datetime.now(),
                 category=category)
             session.add(gear)
             session.commit()
             flash('New Gear Item Created!')
+        else:
+            flash('Name of item is already claimed!')
+
         return redirect(url_for('initialCatalog'))
 
     # If GET method is called render the new gear template
@@ -108,19 +107,21 @@ def editGear(item_name):
     # Check which method was used to call upon this function
     if request.method == 'POST':
 
-        category_name=request.form['category']
+        # Check if the name of the gear is still the same or if the namespace
+        # is free
+        if (request.form['name'] == gear.name or
+        session.query(Gear).filter_by(name=request.form['name']).count() == 0):
 
-        # Check if the name of the gear is still the same
-        if request.form['name'] == gear.name:
-
-            if session.query(Category).filter_by(name=category_name).count()==0:
-                category=Category(name=category_name)
+            cat_name=request.form['category']
+            if session.query(Category).filter_by(name=cat_name).count()==0:
+                category=Category(name=cat_name)
                 session.add(category)
                 session.commit()
                 flash('New Category Created!')
             else:
-                category=session.query(Category).filter_by(name=category_name).one()
+                category=session.query(Category).filter_by(name=cat_name).one()
 
+            gear.name = request.form['name']
             gear.description = request.form['description']
             gear.category = category
             gear.datetimeadded = datetime.now()
@@ -130,32 +131,9 @@ def editGear(item_name):
 
             flash('Item was edited!')
 
-        # The name of the gear is different
+        # The name collides with names for another item
         else:
-            # Check if the new name collides with the names of other gear
-            if session.query(Gear).filter_by(name=request.form['name']).count()==0:
-
-                if session.query(Category).filter_by(name=category_name).count()==0:
-                    category=Category(name=category_name)
-                    session.add(category)
-                    session.commit()
-                    flash('New Category Created!')
-                else:
-                    category=session.query(Category).filter_by(name=category_name).one()
-
-                gear.name = request.form['name']
-                gear.description = request.form['description']
-                gear.category = category
-                gear.datetimeadded = datetime.now()
-
-                session.add(gear)
-                session.commit()
-
-                flash('Item was edited!')
-
-            # The name collides with names for another item
-            else:
-                flash('Another item already has that name!')
+            flash('Another item already has that name!')
 
         return redirect(url_for('gearCatalog',
                             category_name=gear.category.name,
