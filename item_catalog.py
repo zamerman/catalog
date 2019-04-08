@@ -2,6 +2,21 @@
 from flask import Flask, render_template, url_for, request, redirect, flash
 app = Flask(__name__)
 
+# import login and state classes and methods
+from flask import session as login_session
+import random, string
+
+# import oauth handlings classes and methods
+from oauth2client.client import flow_from_clientsecrets
+from oauth2client.client import FlowExchangeError
+import httplib2
+import json
+from flask import make_response
+import requests
+
+CLIENT_ID = json.loads(
+    open('client_secrets.json', 'r').read())['web']['client_id']
+
 # import datetime methods and class
 from datetime import datetime
 
@@ -19,6 +34,17 @@ Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
+# app login page
+@app.route('/login/')
+def showLogin():
+    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                    for x in xrange(32))
+    login_session['state'] = state
+    return render_template('login.html')
+
+# gconnect post page
+@app.route('/gconnect/', methods=['POST'])
 
 # app home page
 @app.route('/')
