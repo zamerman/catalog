@@ -2,9 +2,15 @@
 # PROGRAMMER: Zachary Amerman
 # DATE CREATED: April 1, 2019
 # REVISED DATE: April 10, 2019
-# PURPOSE:
-
-## Site paths/pages and methods
+# PURPOSE: When called serves as a server on localhost port 8000. The site is
+#          a catalog of sports items organised into various categories. Items
+#          and categories are stored in a sqlite database. The site gives the
+#          latest added items, the items in a particular category, and a
+#          description of a particular item. In addition, the site can be logged
+#          into using google. Logging in enables items to be added, edited, or
+#          deleted.
+#
+## Site paths/pages
 # localhost:8000
 # localhost:8000/catalog/
 # localhost:8000/login/
@@ -173,9 +179,10 @@ def gdisconnect():
 def initialCatalog():
     categories = session.query(Category).all()
     latestGear = session.query(Gear).order_by(Gear.datetimeadded.desc())
+    latestGear10 = latestGear.limit(10)
     return render_template('catalogpage.html',
                         categories=categories,
-                        latestGear=latestGear)
+                        latestGear=latestGear10)
 
 # app categories catalog page
 @app.route('/catalog/<string:category_name>/')

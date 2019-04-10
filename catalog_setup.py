@@ -2,7 +2,9 @@
 # PROGRAMMER: Zachary Amerman
 # DATE CREATED: April 6, 2019
 # REVISED DATE: April 10, 2019
-# PURPOSE:
+# PURPOSE: Sets up a sqlite database called 'catalog.db' which has two tables
+#          one for categoriesand one for items. The items are connected with a
+#          category.
 
 # Import sqlalchemy database classes and methods
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime

@@ -2,7 +2,8 @@
 # PROGRAMMER: Zachary Amerman
 # DATE CREATED: April 6, 2019
 # REVISED DATE: April 10, 2019
-# PURPOSE:
+# PURPOSE: Adds some inital categories and items to the 'category.db' database.
+
 # Import database classes and functions
 
 from sqlalchemy import create_engine
