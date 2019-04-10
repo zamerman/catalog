@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# PROGRAMMER: Zachary Amerman
+# DATE CREATED: April 6, 2019
+# REVISED DATE: April 10, 2019
+# PURPOSE:
+
 # Import sqlalchemy database classes and methods
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base

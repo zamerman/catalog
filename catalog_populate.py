@@ -1,4 +1,10 @@
+#!/usr/bin/env python
+# PROGRAMMER: Zachary Amerman
+# DATE CREATED: April 6, 2019
+# REVISED DATE: April 10, 2019
+# PURPOSE:
 # Import database classes and functions
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from catalog_setup import Base, Category, Gear

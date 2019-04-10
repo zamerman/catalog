@@ -1,3 +1,21 @@
+#!/usr/bin/env python
+# PROGRAMMER: Zachary Amerman
+# DATE CREATED: April 1, 2019
+# REVISED DATE: April 10, 2019
+# PURPOSE:
+
+## Site paths/pages and methods
+# localhost:8000
+# localhost:8000/catalog/
+# localhost:8000/login/
+# localhost:8000/gconnect
+# localhost:8000/gdisconnect
+# localhost:8000/catalog/<string:category_name>/
+# localhost:8000/catalog/<string:category_name>/<string:item_name>/
+# localhost:8000/catalog/create/
+# localhost:8000/catalog/<string:item_name>/edit/
+# localhost:8000/catalog/<string:item_name>/delete/
+
 # import webpage framework methods and classes from flask library
 from flask import Flask, render_template, url_for, request, redirect, flash
 app = Flask(__name__)
