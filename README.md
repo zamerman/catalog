@@ -14,9 +14,9 @@ the ability to add, edit, or delete items. We can also logout afterwards.
 
 ## Usage
 To see the project, first run the following commands.
-..* `python catalog_setup.py`
-..* `python catalog_populate.py`
-..* `python item_catalog.py`
+* `python catalog_setup.py`
+* `python catalog_populate.py`
+* `python item_catalog.py`
 
 Now, you can go onto your internet browser and access `localhost:8000` in order
 to see the site.
