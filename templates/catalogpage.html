@@ -50,7 +50,9 @@
                 {% endwith %}
                 <h2>Latest Items</h2>
                 {% if 'username' in loginsession %}
-                    <a href="{{url_for('createGear')}}">Add Gear</a>
+                    <div class="editer">
+                        <a href="{{url_for('createGear')}}">Add Gear</a>
+                    </div>
                 {% endif %}
                 <hr>
                 <ul>

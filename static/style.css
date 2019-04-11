@@ -76,6 +76,10 @@ button {
     text-align: center;
 }
 
+.editer {
+    text-align: center;
+}
+
 #login-tab {
     position: relative;
     left: 40%;
