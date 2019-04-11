@@ -7,11 +7,9 @@ body {
     background-color: #8598af;
 }
 
-h1 {
-    padding: 10px;
-    margin: 0;
-    color: #dfdfdf;
-    font-family: "Courier"
+hr {
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 h2 {
@@ -22,11 +20,34 @@ h3 {
     display: inline;
 }
 
+button {
+    border-radius: 5px;
+    background-color: #909090;
+    font-weight: bold;
+    color: #ffffff;
+}
+
 .nav-bar {
+    position: relative;
+    width: 100%;
     margin: 0px;
     background-color: #595959;
     border-bottom-style: solid;
     border-color: #6a6a6a;
+    display: inline-block;
+}
+
+.nav-link {
+    position: relative;
+    text-decoration: none;
+    margin: 5px;
+    padding: 5px;
+    color: #dfdfdf;
+    font-family: "Courier";
+    font-weight: bold;
+    font-size: 30px;
+    text-align: center;
+    display: inline-block;
 }
 
 .contents{
@@ -40,7 +61,7 @@ h3 {
     border-width: thin;
     display: inline-block;
     margin: 10px;
-    background-color: #ffffff;
+    background-color: #fffefb;
 }
 
 .categories {
@@ -49,4 +70,32 @@ h3 {
 
 .items {
     flex: 4 1 auto;
+}
+
+#login-tab {
+    position: relative;
+    left: 40%;
+    width: 20%;
+}
+
+#logout-link {
+    position: relative;
+    padding-left: 10px;
+    float: right;
+    border-left: 2px solid #fffefb;
+    display: none;
+}
+
+#login-link {
+    position: relative;
+    padding-left: 10px;
+    float: right;
+    border-left: 2px solid #fffefb;
+}
+
+#signinButton {
+    position: relative;
+    width: 30%;
+    left: 35%;
+    margin-bottom: 10px;
 }

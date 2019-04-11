@@ -9,8 +9,14 @@
     </head>
     <body>
         <div class="nav-bar">
-            <a href={{url_for('initialCatalog')}}>
-                <h1>Sports Gear</h1>
+            <a class="nav-link" href={{url_for('initialCatalog')}}>
+                Sports Gear
+            </a>
+            <a id="login-link" class="nav-link" href="{{url_for('showLogin')}}">
+                Login
+            </a>
+            <a id="logout-link" class="nav-link" href="{{url_for('gdisconnect')}}">
+                Logout
             </a>
         </div>
         <div class="contents">
