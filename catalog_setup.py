@@ -15,6 +15,14 @@ from sqlalchemy import create_engine
 # Create base class
 Base = declarative_base()
 
+# Create User class
+class User(Base):
+    __tablename__ = 'user'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(80), nullable=False)
+    email = Column(String(80), nullable=False, unique=True)
+    picture = Column(String(80))
 
 # Create Category class
 class Category(Base):
@@ -22,6 +30,8 @@ class Category(Base):
 
     name = Column(String(80), nullable=False, unique=True)
     id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
 
 
 # Create Gear class
@@ -34,10 +44,12 @@ class Gear(Base):
     datetimeadded = Column(DateTime, nullable=False)
     category_id = Column(Integer, ForeignKey('category.id'))
     category = relationship(Category)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
 
 
 # Create engine for catalog
-engine = create_engine('sqlite:///catalog.db')
+engine = create_engine('sqlite:///catalogwithusers.db')
 
 # Create database
 Base.metadata.create_all(engine)
