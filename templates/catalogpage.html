@@ -39,9 +39,6 @@
                 </ul>
             </div>
             <div class="links items">
-                {% if 'username' in loginsession %}
-                    <a href="{{url_for('createGear')}}">Add Gear</a>
-                {% endif %}
                 {% with messages = get_flashed_messages() %}
                     {% if messages %}
                         <ul>
@@ -52,6 +49,9 @@
                     {% endif %}
                 {% endwith %}
                 <h2>Latest Items</h2>
+                {% if 'username' in loginsession %}
+                    <a href="{{url_for('createGear')}}">Add Gear</a>
+                {% endif %}
                 <hr>
                 <ul>
                     {% for gear in latestGear %}
