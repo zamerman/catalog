@@ -210,7 +210,10 @@ def gearCatalog(category_name, item_name):
 # app item creation page
 @app.route('/catalog/create/', methods=['GET', 'POST'])
 def createGear():
-
+    # Check if user is logged in
+    if 'username' not in login_session:
+        return redirect(url_for('showLogin'))
+        s
     # Extract categories for navigation bar
     categories = session.query(Category).all()
 
@@ -253,6 +256,9 @@ def createGear():
 # app item editer page
 @app.route('/catalog/<string:item_name>/edit/', methods=['GET', 'POST'])
 def editGear(item_name):
+    # Check if user is logged in
+    if 'username' not in login_session:
+        return redirect(url_for('showLogin'))
 
     # Extract categories and gear for navigation and display purposes
     categories = session.query(Category).all()
@@ -301,12 +307,21 @@ def editGear(item_name):
 @app.route('/catalog/<string:item_name>/delete/',
            methods=['GET', 'POST'])
 def deleteGear(item_name):
+    # Check if user is logged in
+    if 'username' not in login_session:
+        return redirect(url_for('showLogin'))
+
+    # Grab the gear which is being considered for deletion
     gear=session.query(Gear).filter_by(name=item_name).one()
+
+    # If method is post delete gear
     if request.method == 'POST':
         session.delete(gear)
         session.commit()
         flash('An item was deleted!')
         return redirect(url_for('initialCatalog'))
+
+    # Present delete page
     else:
         categories = session.query(Category).all()
         return render_template('deletegearpage.html',
