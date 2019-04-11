@@ -48,10 +48,10 @@ from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from catalog_setup import Base, Category, Gear
+from catalog_setup import Base, Category, Gear, User
 
 # set up database handlers
-engine = create_engine('sqlite:///catalog.db',
+engine = create_engine('sqlite:///catalogwithusers.db',
                     connect_args={'check_same_thread':False},
                     poolclass=StaticPool)
 Base.metadata.bind = engine
