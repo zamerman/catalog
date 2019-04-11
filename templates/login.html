@@ -25,12 +25,16 @@
             <a class="nav-link" href={{url_for('initialCatalog')}}>
                 Sports Gear
             </a>
-            <a id="login-link" class="nav-link" href="{{url_for('showLogin')}}">
-                Login
-            </a>
-            <a id="logout-link" class="nav-link" href="{{url_for('gdisconnect')}}">
-                Logout
-            </a>
+            {% if 'username' not in loginsession %}
+                <a id="login-link" class="nav-link" href="{{url_for('showLogin')}}">
+                    Login
+                </a>
+            {% endif %}
+            {% if 'username' in loginsession %}
+                <a id="logout-link" class="nav-link" href="{{url_for('gdisconnect')}}">
+                    Logout
+                </a>
+            {% endif %}
         </div>
         <div class="links" id="login-tab">
             <h2>Login</h2>

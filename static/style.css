@@ -72,6 +72,10 @@ button {
     flex: 4 1 auto;
 }
 
+.flash {
+    text-align: center;
+}
+
 #login-tab {
     position: relative;
     left: 40%;
@@ -83,7 +87,6 @@ button {
     padding-left: 10px;
     float: right;
     border-left: 2px solid #fffefb;
-    display: none;
 }
 
 #login-link {

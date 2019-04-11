@@ -65,7 +65,9 @@ def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
     login_session['state'] = state
-    return render_template('login.html', STATE=state)
+    return render_template('login.html',
+                           STATE=state,
+                           loginsession=login_session)
 
 # gconnect post page
 @app.route('/gconnect', methods=['POST'])
@@ -182,7 +184,8 @@ def initialCatalog():
     latestGear10 = latestGear.limit(10)
     return render_template('catalogpage.html',
                         categories=categories,
-                        latestGear=latestGear10)
+                        latestGear=latestGear10,
+                        loginsession=login_session)
 
 # app categories catalog page
 @app.route('/catalog/<string:category_name>/')
@@ -193,7 +196,8 @@ def categoryCatalog(category_name):
     return render_template('categorypage.html',
                         category=category,
                         categories=categories,
-                        latestGear=latestGear)
+                        latestGear=latestGear,
+                        loginsession=login_session)
 
 # app item information page
 @app.route('/catalog/<string:category_name>/<string:item_name>')
@@ -203,7 +207,8 @@ def gearCatalog(category_name, item_name):
     categories = session.query(Category).all()
     return render_template('gearpage.html',
                         categories=categories,
-                        gear=gear)
+                        gear=gear,
+                        loginsession=login_session)
 
 
 
@@ -251,7 +256,8 @@ def createGear():
     # If GET method is called render the new gear template
     else:
         return render_template('newgearpage.html',
-                            categories=categories)
+                            categories=categories,
+                            loginsession=login_session)
 
 # app item editer page
 @app.route('/catalog/<string:item_name>/edit/', methods=['GET', 'POST'])
@@ -301,7 +307,8 @@ def editGear(item_name):
     else:
         return render_template('editgearpage.html',
                             categories=categories,
-                            gear=gear)
+                            gear=gear,
+                            loginsession=login_session)
 
 # app item deleter page
 @app.route('/catalog/<string:item_name>/delete/',
@@ -326,7 +333,8 @@ def deleteGear(item_name):
         categories = session.query(Category).all()
         return render_template('deletegearpage.html',
                                categories=categories,
-                               gear=gear)
+                               gear=gear,
+                               loginsession=login_session)
 
 if __name__ == '__main__':
     app.secret_key='super_secret_key'
