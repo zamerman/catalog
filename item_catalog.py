@@ -74,21 +74,20 @@ def showLogin():
 def gconnect():
     # Check that the state tokens match
     if request.args.get('state') != login_session['state']:
-        response = make_response(json.dumps('Invalid state'), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        flash('Invalid state token')
+        return redirect(url_for('initialCatalog'))
 
+    # Obtain the authorization code
     code = request.data
+
     try:
+        # Upgrade the authorization code into a credentials object
         oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
     except FlowExchangeError:
-        response = make_response(
-            json.dumps('Failed to upgrade the authorizationcode.'),
-            401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        flash('Failed to upgrade the authorization code')
+        return redirect(url_for('initialCatalog'))
 
     # Check access token
     access_token = credentials.access_token
@@ -99,33 +98,25 @@ def gconnect():
 
     # If there was an error in the access token info, abort.
     if result.get('error') is not None:
-        response = make_response(json.dumps(result.get('error')), 500)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        flash('There was an error in the access token info')
+        return redirect(url_for('initialCatalog'))
 
     # Verify that the access token is used for the intended user.
     gplus_id = credentials.id_token['sub']
     if result['user_id'] != gplus_id:
-        response = make_response(
-            json.dumps("Token's user ID doesn't match given user ID."), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        flash("Token's user ID doesn't match given user ID")
+        return redirect(url_for('initialCatalog'))
 
     # Verify that the access token is valid for this app.
     if result['issued_to'] != CLIENT_ID:
-        response = make_response(
-            json.dumps("Token's client ID does not match app's."), 401)
-        print "Token's client ID does not match app's."
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        flash("Token's client ID does not match app's")
+        return redirect(url_for('initialCatalog'))
 
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),
-                                 200)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        flash("Current user is already connected")
+        return redirect(url_for('initialCatalog'))
 
     # Store the access token in the session for later use.
     login_session['access_token'] = credentials.access_token
@@ -334,7 +325,26 @@ def deleteGear(item_name):
         return render_template('deletegearpage.html',
                                categories=categories,
                                gear=gear,
-                               loginsession=login_session)
+                               loginsession=login_session   )
+
+def getUserID(email):
+    try:
+        user = session.query(User).filter_by(email=email).one()
+        return user.id
+    except:
+        return None
+
+def getUserInfo(user_id):
+    user = session.query(User).filter_by(id=user_id).one()
+    return user
+
+def createUser(login_session):
+    newUser = User(name=login_session['name'], email=login_session['email'],
+                   picture=login_session['picture'])
+    session.add(newUser)
+    session.commit()
+    user = session.query(User).filter_by(email=login_session['email']).one()
+    return user.id
 
 if __name__ == '__main__':
     app.secret_key='super_secret_key'
