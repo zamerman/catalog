@@ -9,7 +9,7 @@
     </head>
     <body>
         <div class="nav-bar">
-            <a class="nav-link" href={{url_for('initialCatalog')}}>
+            <a class="nav-link" href={{url_for('catalog')}}>
                 Sports Gear
             </a>
             {% if 'username' not in loginsession %}
@@ -48,13 +48,17 @@
                         </ul>
                     {% endif %}
                 {% endwith %}
-                <h2>{{gear.name}} ({{gear.category.name}})</h2>
+                <h2>{{item.name}} ({{item.category.name}})</h2>
+                {% if usercreated %}
+                    <div class="editer">
+                        <a href={{url_for('editItem', item_name=item.name)}}>
+                            Edit</a>
+                        <a href={{url_for('deleteItem', item_name=item.name)}}>
+                            Delete</a>
+                    </div>
+                {% endif %}
                 <hr>
-                <h3>{{gear.description}}</h3>
-                <a href={{url_for('editGear', item_name=gear.name)}}>
-                    Edit</a>
-                <a href={{url_for('deleteGear', item_name=gear.name)}}>
-                    Delete</a>
+                <p>{{item.description}}</p>
             </div>
         </div>
     </body>

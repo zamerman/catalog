@@ -9,7 +9,7 @@
     </head>
     <body>
         <div class="nav-bar">
-            <a class="nav-link" href={{url_for('initialCatalog')}}>
+            <a class="nav-link" href={{url_for('catalog')}}>
                 Sports Gear
             </a>
             {% if 'username' not in loginsession %}
@@ -39,15 +39,20 @@
                 </ul>
             </div>
             <div class="links items">
-                <h2>{{category.name}} Items ({{latestGear.count()}} Items)</h2>
+                <h2>{{category.name}} Items ({{items.count()}} Items)</h2>
+                {% if 'username' in loginsession %}
+                    <div class="editer">
+                        <a href="{{url_for('createItem')}}">Add Item</a>
+                    </div>
+                {% endif %}
                 <hr>
                 <ul>
-                    {% for gear in latestGear %}
+                    {% for item in items %}
                         <li>
-                            <a href={{url_for('gearCatalog',
-                            category_name=gear.category.name,
-                            item_name=gear.name)}}>
-                                <h3>{{gear.name}} ({{gear.category.name}})</h3>
+                            <a href={{url_for('itemCatalog',
+                            category_name=item.category.name,
+                            item_name=item.name)}}>
+                                <h3>{{item.name}} ({{item.category.name}})</h3>
                             </a>
                         </li>
                     {% endfor %}

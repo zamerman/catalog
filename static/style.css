@@ -20,6 +20,15 @@ h3 {
     display: inline;
 }
 
+p {
+    margin: 10px;
+}
+
+form {
+    margin: 20px;
+    display: inline-block;
+}
+
 button {
     border-radius: 5px;
     background-color: #909090;

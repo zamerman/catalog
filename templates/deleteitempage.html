@@ -9,7 +9,7 @@
     </head>
     <body>
         <div class="nav-bar">
-            <a class="nav-link" href={{url_for('initialCatalog')}}>
+            <a class="nav-link" href={{url_for('catalog')}}>
                 Sports Gear
             </a>
             {% if 'username' not in loginsession %}
@@ -39,15 +39,15 @@
                 </ul>
             </div>
             <div class="links items">
-                <h2>Delete Gear</h2>
+                <h2>Delete {{item.name}}</h2>
                 <hr>
-                <form action={{url_for('deleteGear', item_name=gear.name)}} method="post">
-                    Do you really want to delete {{gear.name}}?
+                <p>Do you really want to delete {{item.name}}?</p>
+                <form action={{url_for('deleteItem', item_name=item.name)}} method="post">
                     <input type="submit" value="Yes">
                 </form>
-                <form action={{url_for('gearCatalog',
-                                       category_name=gear.category.name,
-                                       item_name=gear.name)}}
+                <form action={{url_for('itemCatalog',
+                                       category_name=item.category.name,
+                                       item_name=item.name)}}
                       method="get">
                       <input type="submit" value="No">
                 </form>

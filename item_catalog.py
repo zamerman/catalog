@@ -48,10 +48,10 @@ from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from catalog_setup import Base, Category, Gear, User
+from catalog_setup import Base, Category, Item, User
 
 # set up database handlers
-engine = create_engine('sqlite:///catalogwithusers.db',
+engine = create_engine('sqlite:///catalog.db',
                     connect_args={'check_same_thread':False},
                     poolclass=StaticPool)
 Base.metadata.bind = engine
@@ -75,7 +75,7 @@ def gconnect():
     # Check that the state tokens match
     if request.args.get('state') != login_session['state']:
         flash('Invalid state token')
-        return redirect(url_for('initialCatalog'))
+        return redirect(url_for('catalog'))
 
     # Obtain the authorization code
     code = request.data
@@ -87,7 +87,7 @@ def gconnect():
         credentials = oauth_flow.step2_exchange(code)
     except FlowExchangeError:
         flash('Failed to upgrade the authorization code')
-        return redirect(url_for('initialCatalog'))
+        return redirect(url_for('catalog'))
 
     # Check access token
     access_token = credentials.access_token
@@ -99,24 +99,24 @@ def gconnect():
     # If there was an error in the access token info, abort.
     if result.get('error') is not None:
         flash('There was an error in the access token info')
-        return redirect(url_for('initialCatalog'))
+        return redirect(url_for('catalog'))
 
     # Verify that the access token is used for the intended user.
     gplus_id = credentials.id_token['sub']
     if result['user_id'] != gplus_id:
         flash("Token's user ID doesn't match given user ID")
-        return redirect(url_for('initialCatalog'))
+        return redirect(url_for('catalog'))
 
     # Verify that the access token is valid for this app.
     if result['issued_to'] != CLIENT_ID:
         flash("Token's client ID does not match app's")
-        return redirect(url_for('initialCatalog'))
+        return redirect(url_for('catalog'))
 
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
         flash("Current user is already connected")
-        return redirect(url_for('initialCatalog'))
+        return redirect(url_for('catalog'))
 
     # Store the access token in the session for later use.
     login_session['access_token'] = credentials.access_token
@@ -159,7 +159,9 @@ def getUserInfo(user_id):
     return user
 
 def createUser(login_session):
-    newUser = User(name=login_session['username'], email=login_session['email'], picture=login_session['picture'])
+    newUser = User(name=login_session['username'],
+                   email=login_session['email'],
+                   picture=login_session['picture'])
     session.add(newUser)
     session.commit()
     user = session.query(User).filter_by(email=login_session['email']).one()
@@ -171,7 +173,7 @@ def gdisconnect():
     access_token = login_session.get('access_token')
     if access_token is None:
         flash('Current user not connected.')
-        return redirect(url_for('initialCatalog'))
+        return redirect(url_for('catalog'))
     url = ('https://accounts.google.com/o/oauth2/revoke?token=%s' %
         login_session['access_token'])
     h = httplib2.Http()
@@ -182,22 +184,23 @@ def gdisconnect():
         del login_session['username']
         del login_session['email']
         del login_session['picture']
+        del login_session['user_id']
         flash('Successfully disconnected.')
-        return redirect(url_for('initialCatalog'))
+        return redirect(url_for('catalog'))
     else:
         flash('Failed to revoke token for given user.')
-        return redirect(url_for('initialCatalog'))
+        return redirect(url_for('catalog'))
 
 # app home page
 @app.route('/')
 @app.route('/catalog/')
-def initialCatalog():
+def catalog():
     categories = session.query(Category).all()
-    latestGear = session.query(Gear).order_by(Gear.datetimeadded.desc())
-    latestGear10 = latestGear.limit(10)
+    latest_items = session.query(Item).order_by(Item.datetimeadded.desc())
+    latest_items_10 = latest_items.limit(10)
     return render_template('catalogpage.html',
                         categories=categories,
-                        latestGear=latestGear10,
+                        latestItems10=latest_items_10,
                         loginsession=login_session)
 
 # app categories catalog page
@@ -205,27 +208,32 @@ def initialCatalog():
 def categoryCatalog(category_name):
     category = session.query(Category).filter_by(name=category_name).one()
     categories = session.query(Category).all()
-    latestGear = session.query(Gear).filter_by(category=category)
+    items = session.query(Item).filter_by(category=category)
     return render_template('categorypage.html',
                         category=category,
                         categories=categories,
-                        latestGear=latestGear,
+                        items=items,
                         loginsession=login_session)
 
 # app item information page
 @app.route('/catalog/<string:category_name>/<string:item_name>')
-def gearCatalog(category_name, item_name):
+def itemCatalog(category_name, item_name):
     category = session.query(Category).filter_by(name=category_name).one()
-    gear = session.query(Gear).filter_by(name=item_name,category=category).one()
+    item = session.query(Item).filter_by(name=item_name,category=category).one()
     categories = session.query(Category).all()
-    return render_template('gearpage.html',
+    if 'user_id' in login_session:
+        user_created = item.user_id == login_session['user_id']
+    else:
+        user_created = False
+    return render_template('itempage.html',
                         categories=categories,
-                        gear=gear,
-                        loginsession=login_session)
+                        item=item,
+                        loginsession=login_session,
+                        usercreated=user_created)
 
 # app item creation page
 @app.route('/catalog/create/', methods=['GET', 'POST'])
-def createGear():
+def createItem():
     # Check if user is logged in
     if 'username' not in login_session:
         return redirect(url_for('showLogin'))
@@ -240,70 +248,78 @@ def createGear():
         # If the name of the item is unclaimed create it
         # Else flash an error
         item_name = request.form['name']
-        if session.query(Gear).filter_by(name=item_name).count() == 0:
+        if session.query(Item).filter_by(name=item_name).count() == 0:
             # If category exists find it
             # Else create Category
             cat_name=request.form['category']
             if session.query(Category).filter_by(name=cat_name).count() > 0:
                 category=session.query(Category).filter_by(name=cat_name).one()
             else:
-                category=Category(cat_name)
+                category=Category(name=cat_name)
                 session.add(category)
                 session.commit()
                 flash('New Category created')
 
-            gear=Gear(name=request.form['name'],
+            item=Item(name=request.form['name'],
                 description=request.form['description'],
                 datetimeadded=datetime.now(),
-                category=category)
-            session.add(gear)
+                category=category,
+                user_id=login_session['user_id'])
+            session.add(item)
             session.commit()
-            flash('New Gear Item Created!')
+            flash('New Item Created!')
         else:
             flash('Name of item is already claimed!')
 
-        return redirect(url_for('initialCatalog'))
+        return redirect(url_for('catalog'))
 
-    # If GET method is called render the new gear template
+    # If GET method is called render the new item template
     else:
-        return render_template('newgearpage.html',
+        return render_template('newitempage.html',
                             categories=categories,
                             loginsession=login_session)
 
+
+
 # app item editer page
 @app.route('/catalog/<string:item_name>/edit/', methods=['GET', 'POST'])
-def editGear(item_name):
+def editItem(item_name):
     # Check if user is logged in
     if 'username' not in login_session:
         return redirect(url_for('showLogin'))
 
-    # Extract categories and gear for navigation and display purposes
+    # Extract categories and item for navigation and database purposes
     categories = session.query(Category).all()
-    gear=session.query(Gear).filter_by(name=item_name).one()
+    item=session.query(Item).filter_by(name=item_name).one()
+
+    # Check if user is authorized to edit this item
+    if login_session['user_id'] != item.user_id:
+        flash('User is not authorized to edit this item')
+        return redirect(url_for('catalog'))
 
     # Check which method was used to call upon this function
     if request.method == 'POST':
 
-        # Check if the name of the gear is still the same or if the namespace
+        # Check if the name of the item is still the same or if the namespace
         # is free
-        if (request.form['name'] == gear.name or
-        session.query(Gear).filter_by(name=request.form['name']).count() == 0):
+        if (request.form['name'] == item.name or
+        session.query(Item).filter_by(name=request.form['name']).count() == 0):
 
             cat_name=request.form['category']
             if session.query(Category).filter_by(name=cat_name).count()==0:
-                category=Category(name=cat_name)
+                category = Category(name=cat_name)
                 session.add(category)
                 session.commit()
                 flash('New Category Created!')
             else:
                 category=session.query(Category).filter_by(name=cat_name).one()
 
-            gear.name = request.form['name']
-            gear.description = request.form['description']
-            gear.category = category
-            gear.datetimeadded = datetime.now()
+            item.name = request.form['name']
+            item.description = request.form['description']
+            item.category = category
+            item.datetimeadded = datetime.now()
 
-            session.add(gear)
+            session.add(item)
             session.commit()
 
             flash('Item was edited!')
@@ -312,39 +328,44 @@ def editGear(item_name):
         else:
             flash('Another item already has that name!')
 
-        return redirect(url_for('gearCatalog',
-                            category_name=gear.category.name,
-                            item_name=gear.name))
+        return redirect(url_for('itemCatalog',
+                            category_name=item.category.name,
+                            item_name=item.name))
     else:
-        return render_template('editgearpage.html',
+        return render_template('edititempage.html',
                             categories=categories,
-                            gear=gear,
+                            item=item,
                             loginsession=login_session)
 
 # app item deleter page
 @app.route('/catalog/<string:item_name>/delete/',
            methods=['GET', 'POST'])
-def deleteGear(item_name):
+def deleteItem(item_name):
     # Check if user is logged in
     if 'username' not in login_session:
         return redirect(url_for('showLogin'))
 
-    # Grab the gear which is being considered for deletion
-    gear=session.query(Gear).filter_by(name=item_name).one()
+    # Grab items and categories from database
+    categories = session.query(Category).all()
+    item=session.query(Item).filter_by(name=item_name).one()
 
-    # If method is post delete gear
+    # Check if user is authorized to delete this item
+    if login_session['user_id'] != item.user_id:
+        flash('User is not authorized to delete this item')
+        return redirect(url_for('catalog'))
+
+    # If method is post delete item
     if request.method == 'POST':
-        session.delete(gear)
+        session.delete(item)
         session.commit()
         flash('An item was deleted!')
-        return redirect(url_for('initialCatalog'))
+        return redirect(url_for('catalog'))
 
     # Present delete page
     else:
-        categories = session.query(Category).all()
-        return render_template('deletegearpage.html',
+        return render_template('deleteitempage.html',
                                categories=categories,
-                               gear=gear,
+                               item=item,
                                loginsession=login_session   )
 
 if __name__ == '__main__':
