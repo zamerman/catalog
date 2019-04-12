@@ -15,6 +15,7 @@ from sqlalchemy import create_engine
 # Create base class
 Base = declarative_base()
 
+
 # Create User class
 class User(Base):
     __tablename__ = 'user'
@@ -23,6 +24,7 @@ class User(Base):
     name = Column(String(80), nullable=False)
     email = Column(String(80), nullable=False, unique=True)
     picture = Column(String(80))
+
 
 # Create Category class
 class Category(Base):
@@ -53,6 +55,7 @@ class Item(Base):
             'description': self.description,
             'category_name': self.category.name
         }
+
 
 # Create engine for catalog
 engine = create_engine('sqlite:///catalog.db')

@@ -215,7 +215,7 @@ def categoryCatalog(category_name):
 def itemCatalog(cat_name, item_name, item_id):
     category = session.query(Category).filter_by(name=cat_name).one()
     item = session.query(Item).filter_by(name=item_name,
-                                         id = item_id,
+                                         id=item_id,
                                          category=category).one()
     categories = session.query(Category).all()
     if 'user_id' in login_session:
@@ -246,12 +246,11 @@ def categoryCatelogJSON(category_name):
     return jsonify(CategoryItems=[item.serialize for item in items])
 
 # JSON endpoint for an item page
-@app.route(
-'/catalog/<string:cat_name>/<string:item_name>/<int:item_id>/JSON/')
+@app.route('/catalog/<string:cat_name>/<string:item_name>/<int:item_id>/JSON/')
 def itemCatelogJSON(cat_name, item_name, item_id):
     category = session.query(Category).filter_by(name=cat_name).one()
     item = session.query(Item).filter_by(name=item_name,
-                                         id = item_id,
+                                         id=item_id,
                                          category=category).one()
     categories = session.query(Category).all()
     return jsonify(Item=[item.serialize])
