@@ -1,4 +1,4 @@
-README v0.0 / 10 APRIL 2019
+README v0.1 / 12 APRIL 2019
 
 # Sports Catalog Project
 
@@ -10,7 +10,9 @@ This project locally hosts a server off of port 8000 on your computer. This
 server contains a sports gear catalog based off of a sqlite database. Using
 the database we can view the latest gear items, the items in a particular sports
 category, or a particular item. We can also login using Google which gives us
-the ability to add, edit, or delete items. We can also logout afterwards.
+the ability to add items, and if we are the user who created an item we can
+edit or delete the item. JSON endpoints are also included for all pages which
+present information
 
 ## Usage
 To see the project, first run the following commands.
