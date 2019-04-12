@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # PROGRAMMER: Zachary Amerman
 # DATE CREATED: April 6, 2019
-# REVISED DATE: April 10, 2019
+# REVISED DATE: April 12, 2019
 # PURPOSE: Sets up a sqlite database called 'catalog.db' which has two tables
 #          one for categoriesand one for items. The items are connected with a
 #          category.
@@ -30,15 +30,13 @@ class Category(Base):
 
     name = Column(String(80), nullable=False, unique=True)
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
 
 
-# Create Gear class
-class Gear(Base):
-    __tablename__ = 'gear'
+# Create Item class
+class Item(Base):
+    __tablename__ = 'items'
 
-    name = Column(String(80), nullable=False, unique=True)
+    name = Column(String(80), nullable=False)
     id = Column(Integer, primary_key=True)
     description = Column(String(250))
     datetimeadded = Column(DateTime, nullable=False)
@@ -49,7 +47,7 @@ class Gear(Base):
 
 
 # Create engine for catalog
-engine = create_engine('sqlite:///catalogwithusers.db')
+engine = create_engine('sqlite:///catalog.db')
 
 # Create database
 Base.metadata.create_all(engine)
