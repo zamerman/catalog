@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # PROGRAMMER: Zachary Amerman
 # DATE CREATED: April 1, 2019
-# REVISED DATE: April 10, 2019
+# REVISED DATE: April 12, 2019
 # PURPOSE: When called serves as a server on localhost port 8000. The site is
 #          a catalog of sports items organised into various categories. Items
 #          and categories are stored in a sqlite database. The site gives the
@@ -133,15 +133,37 @@ def gconnect():
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
 
-    output = ''
-    output += '<h1>Welcome, '
-    output += login_session['username']
-    output += '!</h1>'
-    output += '<img src="'
-    output += login_session['picture']
-    output += '" style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    # Add user to table if user is not in database
+    user_id = getUserID(login_session['email'])
+    if user_id is None:
+        user_id = createUser(login_session)
+        flash('Created new user: %s' % login_session['username'])
+    login_session['user_id'] = user_id
+
+    # Create output and visual response
+    output = '''<h1>Welcome, %s</h1><img src="%s" style="width: 300px;
+                height: 300px; border-radius: 150px;
+                -webkit-border-radius: 150px; -moz-border-radius: 150px;">'''
     flash("you are now logged in as %s" % login_session['username'])
-    return output
+    return output % (login_session['username'], login_session['picture'])
+
+def getUserID(email):
+    try:
+        user = session.query(User).filter_by(email=email).one()
+        return user.id
+    except:
+        return None
+
+def getUserInfo(user_id):
+    user = session.query(User).filter_by(id=user_id).one()
+    return user
+
+def createUser(login_session):
+    newUser = User(name=login_session['username'], email=login_session['email'], picture=login_session['picture'])
+    session.add(newUser)
+    session.commit()
+    user = session.query(User).filter_by(email=login_session['email']).one()
+    return user.id
 
 # gdisconnect page
 @app.route('/gdisconnect')
@@ -201,15 +223,13 @@ def gearCatalog(category_name, item_name):
                         gear=gear,
                         loginsession=login_session)
 
-
-
 # app item creation page
 @app.route('/catalog/create/', methods=['GET', 'POST'])
 def createGear():
     # Check if user is logged in
     if 'username' not in login_session:
         return redirect(url_for('showLogin'))
-        s
+
     # Extract categories for navigation bar
     categories = session.query(Category).all()
 
@@ -326,25 +346,6 @@ def deleteGear(item_name):
                                categories=categories,
                                gear=gear,
                                loginsession=login_session   )
-
-def getUserID(email):
-    try:
-        user = session.query(User).filter_by(email=email).one()
-        return user.id
-    except:
-        return None
-
-def getUserInfo(user_id):
-    user = session.query(User).filter_by(id=user_id).one()
-    return user
-
-def createUser(login_session):
-    newUser = User(name=login_session['name'], email=login_session['email'],
-                   picture=login_session['picture'])
-    session.add(newUser)
-    session.commit()
-    user = session.query(User).filter_by(email=login_session['email']).one()
-    return user.id
 
 if __name__ == '__main__':
     app.secret_key='super_secret_key'
