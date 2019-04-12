@@ -1,4 +1,4 @@
-README v0.1 / 12 APRIL 2019
+README v0.2 / 12 APRIL 2019
 
 # Sports Catalog Project
 
@@ -17,11 +17,11 @@ present information
 ## Usage
 To see the project, first run the following commands.
 * `python catalog_setup.py`
-* `python catalog_populate.py`
 * `python item_catalog.py`
 
 Now, you can go onto your internet browser and access `localhost:8000` in order
-to see the site.
+to see the site. The site will empty at first as nothing has been entered.
+Login with a google account to add, edit, and delete items.
 
 ### Requirements
 The python version used to program and test these programs is 2.7.12. Use the
