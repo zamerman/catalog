@@ -45,6 +45,14 @@ class Item(Base):
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
 
+    # setup serializer function for json endpoints
+    @property
+    def serialize(self):
+        return {
+            'name': self.name,
+            'description': self.description,
+            'category_name': self.category.name
+        }
 
 # Create engine for catalog
 engine = create_engine('sqlite:///catalog.db')

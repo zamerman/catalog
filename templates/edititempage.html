@@ -13,12 +13,14 @@
                 Sports Gear
             </a>
             {% if 'username' not in loginsession %}
-                <a id="login-link" class="nav-link" href="{{url_for('showLogin')}}">
+                <a id="login-link" class="nav-link"
+                 href="{{url_for('showLogin')}}">
                     Login
                 </a>
             {% endif %}
             {% if 'username' in loginsession %}
-                <a id="logout-link" class="nav-link" href="{{url_for('gdisconnect')}}">
+                <a id="logout-link" class="nav-link"
+                 href="{{url_for('gdisconnect')}}">
                     Logout
                 </a>
             {% endif %}
@@ -31,7 +33,7 @@
                     {% for category in categories %}
                         <li>
                             <a href={{url_for('categoryCatalog',
-                            category_name=category.name)}}>
+                                              category_name=category.name)}}>
                                 <h3>{{category.name}}</h3>
                             </a>
                         </li>
@@ -41,11 +43,17 @@
             <div class="links items">
                 <h2>Edit Item</h2>
                 <hr>
-                <form action={{url_for('editItem', item_name=item.name)}} method="post">
-                    <input type="text" name="name" size="30" value={{item.name}}>
-                    <input type="text" name="category" size="30" value={{item.category.name}}>
+                <form action={{url_for('editItem',
+                                       item_name=item.name,
+                                       item_id=item.id)}}
+                 method="post">
+                    <input type="text" name="name" size="30"
+                     value={{item.name}}>
+                    <input type="text" name="category" size="30"
+                     value={{item.category.name}}>
                     <br>
-                    <textarea name="description" rows="4" cols="60">{{item.description}}</textarea>
+                    <textarea name="description" rows="4"
+                     cols="60">{{item.description}}</textarea>
                     <br>
                     <input type="submit" value="Submit">
                 </form>

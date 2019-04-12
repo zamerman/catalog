@@ -51,9 +51,13 @@
                 <h2>{{item.name}} ({{item.category.name}})</h2>
                 {% if usercreated %}
                     <div class="editer">
-                        <a href={{url_for('editItem', item_name=item.name)}}>
+                        <a href={{url_for('editItem',
+                                          item_name=item.name,
+                                          item_id=item.id)}}>
                             Edit</a>
-                        <a href={{url_for('deleteItem', item_name=item.name)}}>
+                        <a href={{url_for('deleteItem',
+                                          item_name=item.name,
+                                          item_id=item.id)}}>
                             Delete</a>
                     </div>
                 {% endif %}

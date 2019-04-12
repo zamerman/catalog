@@ -7,11 +7,13 @@
 #          and categories are stored in a sqlite database. The site gives the
 #          latest added items, the items in a particular category, and a
 #          description of a particular item. In addition, the site can be
-#          logged into using google. Logging in enables items to be added,
-#          edited, or deleted.
+#          logged into using google. Logging in enables items to be added, and
+#          if if you are the user who added an item you are able to edit or
+#          delete it.
 
 # import webpage framework methods and classes from flask library
-from flask import Flask, render_template, url_for, request, redirect, flash
+from flask import Flask, render_template, url_for
+from flask import request, redirect, flash, jsonify
 
 # import login and state classes and methods
 from flask import session as login_session
@@ -40,7 +42,7 @@ app = Flask(__name__)
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 
-# set up database handlers
+# setup database handlers
 engine = create_engine('sqlite:///catalog.db',
                        connect_args={'check_same_thread': False},
                        poolclass=StaticPool)
@@ -209,10 +211,11 @@ def categoryCatalog(category_name):
                            loginsession=login_session)
 
 # app item information page
-@app.route('/catalog/<string:category_name>/<string:item_name>')
-def itemCatalog(category_name, item_name):
-    category = session.query(Category).filter_by(name=category_name).one()
+@app.route('/catalog/<string:cat_name>/<string:item_name>/<int:item_id>/')
+def itemCatalog(cat_name, item_name, item_id):
+    category = session.query(Category).filter_by(name=cat_name).one()
     item = session.query(Item).filter_by(name=item_name,
+                                         id = item_id,
                                          category=category).one()
     categories = session.query(Category).all()
     if 'user_id' in login_session:
@@ -225,6 +228,34 @@ def itemCatalog(category_name, item_name):
                            loginsession=login_session,
                            usercreated=user_created)
 
+# JSON pages
+# JSON endpoint for home page
+@app.route('/catalog/JSON/')
+def catalogJSON():
+    categories = session.query(Category).all()
+    latest_items = session.query(Item).order_by(Item.datetimeadded.desc())
+    latest_items_10 = latest_items.limit(10)
+    return jsonify(LatestGear=[item.serialize for item in latest_items_10])
+
+# JSON endpoint for a category page
+@app.route('/catalog/<string:category_name>/JSON/')
+def categoryCatelogJSON(category_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    categories = session.query(Category).all()
+    items = session.query(Item).filter_by(category=category).all()
+    return jsonify(CategoryItems=[item.serialize for item in items])
+
+# JSON endpoint for an item page
+@app.route(
+'/catalog/<string:cat_name>/<string:item_name>/<int:item_id>/JSON/')
+def itemCatelogJSON(cat_name, item_name, item_id):
+    category = session.query(Category).filter_by(name=cat_name).one()
+    item = session.query(Item).filter_by(name=item_name,
+                                         id = item_id,
+                                         category=category).one()
+    categories = session.query(Category).all()
+    return jsonify(Item=[item.serialize])
+
 # app item creation page
 @app.route('/catalog/create/', methods=['GET', 'POST'])
 def createItem():
@@ -233,56 +264,54 @@ def createItem():
         return redirect(url_for('showLogin'))
 
     # Extract categories for navigation bar
-    categories = session.query(Category).all()
+    categories = session.query(Category)
+    list_categories = categories.all()
 
     # Check which method was used to call function
     # If POST method is called then make changes to database and redirect to
     # home page
     if request.method == 'POST':
-        # If the name of the item is unclaimed create it
-        # Else flash an error
-        item_name = request.form['name']
-        if session.query(Item).filter_by(name=item_name).count() == 0:
-            # If category exists find it
-            # Else create Category
-            cat_name = request.form['category']
-            if categories.filter_by(name=cat_name).count() > 0:
-                category = categories.filter_by(name=cat_name).one()
-            else:
-                category = Category(name=cat_name)
-                session.add(category)
-                session.commit()
-                flash('New Category created')
-
-            item = Item(name=request.form['name'],
-                        description=request.form['description'],
-                        datetimeadded=datetime.now(),
-                        category=category,
-                        user_id=login_session['user_id'])
-            session.add(item)
-            session.commit()
-            flash('New Item Created!')
+        # If category exists find it
+        # Else create Category
+        cat_name = request.form['category']
+        if categories.filter_by(name=cat_name).count() > 0:
+            category = categories.filter_by(name=cat_name).one()
         else:
-            flash('Name of item is already claimed!')
+            category = Category(name=cat_name)
+            session.add(category)
+            session.commit()
+            flash('New Category created')
 
+        item = Item(name=request.form['name'],
+                    description=request.form['description'],
+                    datetimeadded=datetime.now(),
+                    category=category,
+                    user_id=login_session['user_id'])
+        session.add(item)
+        session.commit()
+
+        # Give visual response and redirect
+        flash('New Item Created!')
         return redirect(url_for('catalog'))
 
     # If GET method is called render the new item template
     else:
         return render_template('newitempage.html',
-                               categories=categories,
+                               categories=list_categories,
                                loginsession=login_session)
 
 # app item editer page
-@app.route('/catalog/<string:item_name>/edit/', methods=['GET', 'POST'])
-def editItem(item_name):
+@app.route('/catalog/<string:item_name>/<int:item_id>/edit/',
+           methods=['GET', 'POST'])
+def editItem(item_name, item_id):
     # Check if user is logged in
     if 'username' not in login_session:
         return redirect(url_for('showLogin'))
 
     # Extract categories and item for navigation and database purposes
-    categories = session.query(Category).all()
-    item = session.query(Item).filter_by(name=item_name).one()
+    categories = session.query(Category)
+    list_categories = categories.all()
+    item = session.query(Item).filter_by(name=item_name, id=item_id).one()
     items = session.query(Item)
 
     # Check if user is authorized to edit this item
@@ -293,53 +322,59 @@ def editItem(item_name):
     # Check which method was used to call upon this function
     if request.method == 'POST':
 
-        # Check if the name of the item is still the same or if the namespace
-        # is free
-        if (request.form['name'] == item.name or
-           items.filter_by(name=request.form['name']).count() == 0):
-            cat_name = request.form['category']
-            if categories.filter_by(name=cat_name).count() == 0:
-                category = Category(name=cat_name)
-                session.add(category)
-                session.commit()
-                flash('New Category Created!')
-            else:
-                category = categories.filter_by(name=cat_name).one()
-
-            item.name = request.form['name']
-            item.description = request.form['description']
-            item.category = category
-            item.datetimeadded = datetime.now()
-
-            session.add(item)
+        # Grab the new category name and check if a Category for that exists
+        # in the database. If it does not create it
+        cat_name = request.form['category']
+        if categories.filter_by(name=cat_name).count() == 0:
+            category = Category(name=cat_name)
+            session.add(category)
             session.commit()
-
-            flash('Item was edited!')
-
-        # The name collides with names for another item
+            flash('New Category Created!')
         else:
-            flash('Another item already has that name!')
+            category = categories.filter_by(name=cat_name).one()
 
+        # Grab the old category
+        old_category = item.category
+
+        # Edit the item
+        item.name = request.form['name']
+        item.description = request.form['description']
+        item.category = category
+        item.datetimeadded = datetime.now()
+        session.add(item)
+        session.commit()
+
+        # Check if the old category has any items in it and if it does not
+        # delete the category
+        if session.query(Item).filter_by(category=old_category).count() == 0:
+            session.delete(old_category)
+            session.commit()
+            flash("%s had no items in it and was deleted!"
+                  % old_category.name)
+
+        # Give visual response and redirect
+        flash('Item was edited!')
         return redirect(url_for('itemCatalog',
-                                category_name=item.category.name,
-                                item_name=item.name))
+                                cat_name=item.category.name,
+                                item_name=item.name,
+                                item_id=item.id))
     else:
         return render_template('edititempage.html',
-                               categories=categories,
+                               categories=list_categories,
                                item=item,
                                loginsession=login_session)
 
 # app item deleter page
-@app.route('/catalog/<string:item_name>/delete/',
+@app.route('/catalog/<string:item_name>/<int:item_id>/delete/',
            methods=['GET', 'POST'])
-def deleteItem(item_name):
+def deleteItem(item_name, item_id):
     # Check if user is logged in
     if 'username' not in login_session:
         return redirect(url_for('showLogin'))
 
     # Grab items and categories from database
     categories = session.query(Category).all()
-    item = session.query(Item).filter_by(name=item_name).one()
+    item = session.query(Item).filter_by(name=item_name, id=item_id).one()
 
     # Check if user is authorized to delete this item
     if login_session['user_id'] != item.user_id:
@@ -348,8 +383,21 @@ def deleteItem(item_name):
 
     # If method is post delete item
     if request.method == 'POST':
+        # Grab the items category
+        category = item.category
+
+        # Delete the item
         session.delete(item)
         session.commit()
+
+        # Check if the old category has any items in it and if it does not
+        # delete the category
+        if session.query(Item).filter_by(category=category).count() == 0:
+            session.delete(category)
+            session.commit()
+            flash("%s had no items in it and was deleted!" % category.name)
+
+        # Give a visual response to the user and redirect to the home page
         flash('An item was deleted!')
         return redirect(url_for('catalog'))
 

@@ -50,8 +50,9 @@
                     {% for item in items %}
                         <li>
                             <a href={{url_for('itemCatalog',
-                            category_name=item.category.name,
-                            item_name=item.name)}}>
+                            cat_name=item.category.name,
+                            item_name=item.name,
+                            item_id=item.id)}}>
                                 <h3>{{item.name}} ({{item.category.name}})</h3>
                             </a>
                         </li>
