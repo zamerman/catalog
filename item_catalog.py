@@ -6,29 +6,17 @@
 #          a catalog of sports items organised into various categories. Items
 #          and categories are stored in a sqlite database. The site gives the
 #          latest added items, the items in a particular category, and a
-#          description of a particular item. In addition, the site can be logged
-#          into using google. Logging in enables items to be added, edited, or
-#          deleted.
-#
-## Site paths/pages
-# localhost:8000
-# localhost:8000/catalog/
-# localhost:8000/login/
-# localhost:8000/gconnect
-# localhost:8000/gdisconnect
-# localhost:8000/catalog/<string:category_name>/
-# localhost:8000/catalog/<string:category_name>/<string:item_name>/
-# localhost:8000/catalog/create/
-# localhost:8000/catalog/<string:item_name>/edit/
-# localhost:8000/catalog/<string:item_name>/delete/
+#          description of a particular item. In addition, the site can be
+#          logged into using google. Logging in enables items to be added,
+#          edited, or deleted.
 
 # import webpage framework methods and classes from flask library
 from flask import Flask, render_template, url_for, request, redirect, flash
-app = Flask(__name__)
 
 # import login and state classes and methods
 from flask import session as login_session
-import random, string
+import random
+import string
 
 # import oauth handlings classes and methods
 from oauth2client.client import flow_from_clientsecrets
@@ -37,9 +25,6 @@ import httplib2
 import json
 from flask import make_response
 import requests
-
-CLIENT_ID = json.loads(
-    open('client_secrets.json', 'r').read())['web']['client_id']
 
 # import datetime methods and class
 from datetime import datetime
@@ -50,10 +35,15 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from catalog_setup import Base, Category, Item, User
 
+app = Flask(__name__)
+
+CLIENT_ID = json.loads(
+    open('client_secrets.json', 'r').read())['web']['client_id']
+
 # set up database handlers
 engine = create_engine('sqlite:///catalog.db',
-                    connect_args={'check_same_thread':False},
-                    poolclass=StaticPool)
+                       connect_args={'check_same_thread': False},
+                       poolclass=StaticPool)
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -92,7 +82,7 @@ def gconnect():
     # Check access token
     access_token = credentials.access_token
     url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s' %
-        access_token)
+           access_token)
     h = httplib2.Http()
     result = json.loads(h.request(url, 'GET')[1])
 
@@ -147,16 +137,19 @@ def gconnect():
     flash("you are now logged in as %s" % login_session['username'])
     return output % (login_session['username'], login_session['picture'])
 
+
 def getUserID(email):
     try:
         user = session.query(User).filter_by(email=email).one()
         return user.id
-    except:
+    except NameError:
         return None
+
 
 def getUserInfo(user_id):
     user = session.query(User).filter_by(id=user_id).one()
     return user
+
 
 def createUser(login_session):
     newUser = User(name=login_session['username'],
@@ -175,7 +168,7 @@ def gdisconnect():
         flash('Current user not connected.')
         return redirect(url_for('catalog'))
     url = ('https://accounts.google.com/o/oauth2/revoke?token=%s' %
-        login_session['access_token'])
+           login_session['access_token'])
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     if result['status'] == '200':
@@ -199,9 +192,9 @@ def catalog():
     latest_items = session.query(Item).order_by(Item.datetimeadded.desc())
     latest_items_10 = latest_items.limit(10)
     return render_template('catalogpage.html',
-                        categories=categories,
-                        latestItems10=latest_items_10,
-                        loginsession=login_session)
+                           categories=categories,
+                           latestItems10=latest_items_10,
+                           loginsession=login_session)
 
 # app categories catalog page
 @app.route('/catalog/<string:category_name>/')
@@ -210,26 +203,27 @@ def categoryCatalog(category_name):
     categories = session.query(Category).all()
     items = session.query(Item).filter_by(category=category)
     return render_template('categorypage.html',
-                        category=category,
-                        categories=categories,
-                        items=items,
-                        loginsession=login_session)
+                           category=category,
+                           categories=categories,
+                           items=items,
+                           loginsession=login_session)
 
 # app item information page
 @app.route('/catalog/<string:category_name>/<string:item_name>')
 def itemCatalog(category_name, item_name):
     category = session.query(Category).filter_by(name=category_name).one()
-    item = session.query(Item).filter_by(name=item_name,category=category).one()
+    item = session.query(Item).filter_by(name=item_name,
+                                         category=category).one()
     categories = session.query(Category).all()
     if 'user_id' in login_session:
         user_created = item.user_id == login_session['user_id']
     else:
         user_created = False
     return render_template('itempage.html',
-                        categories=categories,
-                        item=item,
-                        loginsession=login_session,
-                        usercreated=user_created)
+                           categories=categories,
+                           item=item,
+                           loginsession=login_session,
+                           usercreated=user_created)
 
 # app item creation page
 @app.route('/catalog/create/', methods=['GET', 'POST'])
@@ -251,20 +245,20 @@ def createItem():
         if session.query(Item).filter_by(name=item_name).count() == 0:
             # If category exists find it
             # Else create Category
-            cat_name=request.form['category']
-            if session.query(Category).filter_by(name=cat_name).count() > 0:
-                category=session.query(Category).filter_by(name=cat_name).one()
+            cat_name = request.form['category']
+            if categories.filter_by(name=cat_name).count() > 0:
+                category = categories.filter_by(name=cat_name).one()
             else:
-                category=Category(name=cat_name)
+                category = Category(name=cat_name)
                 session.add(category)
                 session.commit()
                 flash('New Category created')
 
-            item=Item(name=request.form['name'],
-                description=request.form['description'],
-                datetimeadded=datetime.now(),
-                category=category,
-                user_id=login_session['user_id'])
+            item = Item(name=request.form['name'],
+                        description=request.form['description'],
+                        datetimeadded=datetime.now(),
+                        category=category,
+                        user_id=login_session['user_id'])
             session.add(item)
             session.commit()
             flash('New Item Created!')
@@ -276,10 +270,8 @@ def createItem():
     # If GET method is called render the new item template
     else:
         return render_template('newitempage.html',
-                            categories=categories,
-                            loginsession=login_session)
-
-
+                               categories=categories,
+                               loginsession=login_session)
 
 # app item editer page
 @app.route('/catalog/<string:item_name>/edit/', methods=['GET', 'POST'])
@@ -290,7 +282,8 @@ def editItem(item_name):
 
     # Extract categories and item for navigation and database purposes
     categories = session.query(Category).all()
-    item=session.query(Item).filter_by(name=item_name).one()
+    item = session.query(Item).filter_by(name=item_name).one()
+    items = session.query(Item)
 
     # Check if user is authorized to edit this item
     if login_session['user_id'] != item.user_id:
@@ -303,16 +296,15 @@ def editItem(item_name):
         # Check if the name of the item is still the same or if the namespace
         # is free
         if (request.form['name'] == item.name or
-        session.query(Item).filter_by(name=request.form['name']).count() == 0):
-
-            cat_name=request.form['category']
-            if session.query(Category).filter_by(name=cat_name).count()==0:
+           items.filter_by(name=request.form['name']).count() == 0):
+            cat_name = request.form['category']
+            if categories.filter_by(name=cat_name).count() == 0:
                 category = Category(name=cat_name)
                 session.add(category)
                 session.commit()
                 flash('New Category Created!')
             else:
-                category=session.query(Category).filter_by(name=cat_name).one()
+                category = categories.filter_by(name=cat_name).one()
 
             item.name = request.form['name']
             item.description = request.form['description']
@@ -329,13 +321,13 @@ def editItem(item_name):
             flash('Another item already has that name!')
 
         return redirect(url_for('itemCatalog',
-                            category_name=item.category.name,
-                            item_name=item.name))
+                                category_name=item.category.name,
+                                item_name=item.name))
     else:
         return render_template('edititempage.html',
-                            categories=categories,
-                            item=item,
-                            loginsession=login_session)
+                               categories=categories,
+                               item=item,
+                               loginsession=login_session)
 
 # app item deleter page
 @app.route('/catalog/<string:item_name>/delete/',
@@ -347,7 +339,7 @@ def deleteItem(item_name):
 
     # Grab items and categories from database
     categories = session.query(Category).all()
-    item=session.query(Item).filter_by(name=item_name).one()
+    item = session.query(Item).filter_by(name=item_name).one()
 
     # Check if user is authorized to delete this item
     if login_session['user_id'] != item.user_id:
@@ -366,9 +358,10 @@ def deleteItem(item_name):
         return render_template('deleteitempage.html',
                                categories=categories,
                                item=item,
-                               loginsession=login_session   )
+                               loginsession=login_session)
+
 
 if __name__ == '__main__':
-    app.secret_key='super_secret_key'
+    app.secret_key = 'super_secret_key'
     app.debug = True
     app.run(host='0.0.0.0', port=8000)
