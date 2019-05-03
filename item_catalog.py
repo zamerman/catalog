@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 # PROGRAMMER: Zachary Amerman
 # DATE CREATED: April 1, 2019
 # REVISED DATE: April 12, 2019
@@ -10,6 +10,11 @@
 #          logged into using google. Logging in enables items to be added, and
 #          if if you are the user who added an item you are able to edit or
 #          delete it.
+
+# alter path
+import sys
+
+sys.path.insert(0, "/var/www/catalog")
 
 # import webpage framework methods and classes from flask library
 from flask import Flask, render_template, url_for
@@ -38,13 +43,13 @@ from sqlalchemy.pool import StaticPool
 from catalog_setup import Base, Category, Item, User
 
 app = Flask(__name__)
+app.secret_key = "SUPER_SECRET"
 
 CLIENT_ID = json.loads(
-    open('client_secrets.json', 'r').read())['web']['client_id']
+    open('/var/www/catalog/client_secrets.json', 'r').read())['web']['client_id']
 
 # setup database handlers
-engine = create_engine('sqlite:///catalog.db',
-                       connect_args={'check_same_thread': False},
+engine = create_engine('postgresql://catalog:catalog@localhost/catalog',
                        poolclass=StaticPool)
 Base.metadata.bind = engine
 
