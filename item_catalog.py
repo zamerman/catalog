@@ -56,6 +56,11 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+# google verification page
+@app.route('/googlef533f837b55dfef4.html/')
+def verify():
+    return render_template('googlef533f837b55dfef4.html')
+
 # app login page
 @app.route('/login/')
 def showLogin():
